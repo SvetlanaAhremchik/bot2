@@ -1,7 +1,8 @@
 import asyncio
 import logging
+import executor
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 
 from config import TOKEN
