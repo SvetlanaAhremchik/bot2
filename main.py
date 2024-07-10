@@ -4,11 +4,12 @@ import requests
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 from config import TOKEN
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -16,56 +17,50 @@ dp = Dispatcher()
 ASTRO_API_URL = 'https://aztro.sameerkumar.website'
 
 
-zodiac_signs = [
-    "aries", "taurus", "gemini", "cancer", "leo", "virgo",
-    "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"
+buttons = [
+    KeyboardButton(text="aries"),
+    KeyboardButton(text="taurus"),
+    KeyboardButton(text="gemini"),
+    KeyboardButton(text="cancer"),
+    KeyboardButton(text="leo"),
+    KeyboardButton(text="virgo"),
+    KeyboardButton(text="libra"),
+    KeyboardButton(text="scorpio"),
+    KeyboardButton(text="sagittarius"),
+    KeyboardButton(text="capricorn"),
+    KeyboardButton(text="aquarius"),
+    KeyboardButton(text="pisces")
 ]
 
-builder = ReplyKeyboardBuilder()
-for sign in zodiac_signs:
-    builder.add(types.KeyboardButton(text=sign.capitalize()))
-zodiac_keyboard = builder.as_markup(resize_keyboard=True)
-
-
-def fetch_horoscope(sign: str) -> str:
-    logging.info(f"Fetching horoscope for: {sign}")
-    response = requests.post(ASTRO_API_URL, params={'sign': sign, 'day': 'today'})
-    logging.info(f"Response status code: {response.status_code}")
-    if response.status_code == 200:
-        json_response = response.json()
-        logging.info(f"Response JSON: {json_response}")
-        return json_response.get("description", "Предсказание не найдено.")
-    else:
-        logging.error(f"Failed to fetch horoscope: {response.text}")
-        return "Не удалось получить предсказание."
-
+# Создание клавиатуры с тремя рядами кнопок
+keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [buttons[0], buttons[1], buttons[2], buttons[3]],
+        [buttons[4], buttons[5], buttons[6], buttons[7]],
+        [buttons[8], buttons[9], buttons[10], buttons[11]],
+    ],
+    resize_keyboard=True
+)
 
 @dp.message(Command('start'))
 async def process_start_command(message: types.Message):
-    await message.reply("Привет! Выберите ваш знак зодиака:", reply_markup=zodiac_keyboard)
+    await message.answer("Выберите ваш знак зодиака:", reply_markup=keyboard)
 
+def get_horoscope(zodiac_sign):
+    # Пример запроса к API для получения гороскопа (замените данный URL на реальный)
+    url = f'https://example.com/api/horoscope?sign={zodiac_sign}'
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('horoscope', "Гороскоп не найден.")
+    else:
+        return "Извините, гороскоп временно недоступен."
 
-@dp.message(Command('help'))
-async def process_help_command(message: types.Message):
-    await message.reply('Рад помочь')
-
-
-@dp.message(Command('info'))
-async def process_info_command(message: types.Message):
-    await message.reply('Это информация о боте')
-
-
-@dp.message(lambda message: message.text.lower() in zodiac_signs)
+@dp.message(lambda message: message.text in [button.text for button in buttons])
 async def send_horoscope(message: types.Message):
-    zodiac_sign = message.text.lower()
-    horoscope = fetch_horoscope(zodiac_sign)
-    await message.answer(f"Ваш гороскоп на сегодня для {zodiac_sign.capitalize()}:\n\n{horoscope}")
-
-
-@dp.message()
-async def echo(message: types.Message):
-    await message.answer(message.text)
-
+    zodiac_sign = message.text
+    horoscope = get_horoscope(zodiac_sign)
+    await message.answer(horoscope)
 
 async def main():
     await dp.start_polling(bot)
