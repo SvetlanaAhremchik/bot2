@@ -1,13 +1,13 @@
 import asyncio
 import logging
 import requests
-import telebot
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 from config import TOKEN
-bot = telebot.TeleBot(token=TOKEN)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 bot = Bot(token=TOKEN)
@@ -76,3 +76,4 @@ async def main():
     await dp.start_polling(bot)
 
 asyncio.run(main())
+
